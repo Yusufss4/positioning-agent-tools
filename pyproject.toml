@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "positioning-agent-tools"
-version = "0.1.0"
+version = "0.2.0"
 description = "MCP server that lets AI coding agents run indoor positioning experiments"
 readme = "README.md"
 requires-python = ">=3.10"

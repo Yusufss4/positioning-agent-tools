@@ -9,7 +9,12 @@ from positioning_agent_tools import server
 
 EXPECTED_TOOLS = {
     "list_scenarios", "describe_venue", "engine_config", "simulate_scenario", "run_replay", "error_breakdown",
-    "plot_run", "compare_filters", "ab_test", "run_regression",
+    "plot_run", "compare_filters", "ab_test", "run_regression", "list_configs", "list_recordings",
+    "benchmark_recordings",
+}
+EXPECTED_RESOURCES = {
+    "ipe://docs/agents", "ipe://docs/formats", "ipe://docs/design", "ipe://docs/experiments", "ipe://docs/real_data",
+    "ipe://results/latest",
 }
 
 
@@ -23,7 +28,7 @@ def test_tools_are_registered_with_descriptions():
 
 def test_resources_are_registered():
     uris = {str(r.uri) for r in asyncio.run(server.mcp.list_resources())}
-    assert {"ipe://docs/agents", "ipe://docs/formats", "ipe://results/latest"} <= uris
+    assert EXPECTED_RESOURCES <= uris
 
 
 @pytest.fixture
@@ -54,3 +59,10 @@ def test_plot_run_returns_image_content(wired, tools):
 def test_resource_read(wired):
     contents = list(asyncio.run(server.mcp.read_resource("ipe://results/latest")))
     assert json.loads(contents[0].content)["results"]
+    for uri in EXPECTED_RESOURCES - {"ipe://results/latest"}:
+        assert list(asyncio.run(server.mcp.read_resource(uri)))[0].content.startswith("#"), uri
+
+
+def test_recording_replay_through_mcp(wired):
+    result = asyncio.run(server.mcp.call_tool("run_replay", {"recording": "site1_F2", "filter": "wcl"}))
+    assert json.loads(_text(result))["config_file"].endswith("msil_wifi.json")
